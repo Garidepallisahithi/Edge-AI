@@ -10,12 +10,12 @@ from typing import Dict, List, Tuple
 
 import joblib
 import matplotlib
+
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 from sklearn.calibration import CalibratedClassifierCV, calibration_curve
-from sklearn.inspection import permutation_importance
 from sklearn.metrics import (
     accuracy_score,
     average_precision_score,
@@ -29,6 +29,7 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 import os
+
 os.environ.setdefault("JOBLIB_TEMP_FOLDER", "/tmp")
 os.environ.setdefault("OMP_NUM_THREADS", "1")
 os.environ.setdefault("MKL_NUM_THREADS", "1")
@@ -36,6 +37,7 @@ os.environ.setdefault("MKL_NUM_THREADS", "1")
 LABEL_COL = "label"
 SPLIT_COL = "internal_split"
 ID_COLS = {"sample_id", "sample_path", "split", "label_raw", "label", "mile", "internal_split"}
+
 
 # Keep feature order broad and safe; script reads all non-metadata columns.
 def get_feature_columns(df: pd.DataFrame) -> List[str]:
@@ -108,7 +110,9 @@ def load_split_df(paths: Paths) -> pd.DataFrame:
     return df
 
 
-def get_split_frames(df: pd.DataFrame) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
+def get_split_frames(
+    df: pd.DataFrame,
+) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFrame, pd.DataFrame]:
     train_df = df[df[SPLIT_COL] == "train"].copy()
     val_df = df[df[SPLIT_COL] == "val"].copy()
     test_df = df[df[SPLIT_COL] == "test"].copy()
@@ -185,7 +189,9 @@ def evaluate_at_threshold(y_true: np.ndarray, y_prob: np.ndarray, threshold: flo
         "recall": float(recall_score(y_true, y_pred, zero_division=0)),
         "f1": float(f1_score(y_true, y_pred, zero_division=0)),
         "roc_auc": float(roc_auc_score(y_true, y_prob)) if len(np.unique(y_true)) > 1 else None,
-        "pr_auc": float(average_precision_score(y_true, y_prob)) if len(np.unique(y_true)) > 1 else None,
+        "pr_auc": (
+            float(average_precision_score(y_true, y_prob)) if len(np.unique(y_true)) > 1 else None
+        ),
         "confusion_matrix": confusion_matrix(y_true, y_pred, labels=[0, 1]).tolist(),
         "classification_report": classification_report(
             y_true,
@@ -214,7 +220,9 @@ def ece_score(y_true: np.ndarray, y_prob: np.ndarray, n_bins: int = 10) -> float
     return float(ece)
 
 
-def compute_uncertainty_metrics(y_true: np.ndarray, y_prob: np.ndarray, threshold: float, confidence_cutoff: float = 0.8) -> Dict:
+def compute_uncertainty_metrics(
+    y_true: np.ndarray, y_prob: np.ndarray, threshold: float, confidence_cutoff: float = 0.8
+) -> Dict:
     y_prob = np.clip(y_prob, 1e-6, 1 - 1e-6)
     y_pred = (y_prob >= threshold).astype(int)
     confidence = np.maximum(y_prob, 1 - y_prob)
@@ -230,11 +238,13 @@ def compute_uncertainty_metrics(y_true: np.ndarray, y_prob: np.ndarray, threshol
         "coverage_at_confidence_cutoff": float(np.mean(selective_mask)),
         "selective_accuracy_at_confidence_cutoff": (
             float(accuracy_score(y_true[selective_mask], y_pred[selective_mask]))
-            if np.any(selective_mask) else None
+            if np.any(selective_mask)
+            else None
         ),
         "selective_f1_at_confidence_cutoff": (
             float(f1_score(y_true[selective_mask], y_pred[selective_mask], zero_division=0))
-            if np.any(selective_mask) else None
+            if np.any(selective_mask)
+            else None
         ),
     }
     return out
@@ -251,7 +261,9 @@ def plot_confidence_hist(confidence: np.ndarray, out_path: Path, title: str) -> 
     plt.close(fig)
 
 
-def plot_reliability_curve(y_true: np.ndarray, y_prob: np.ndarray, out_path: Path, title: str) -> None:
+def plot_reliability_curve(
+    y_true: np.ndarray, y_prob: np.ndarray, out_path: Path, title: str
+) -> None:
     y_prob = np.clip(y_prob, 1e-6, 1 - 1e-6)
     frac_pos, mean_pred = calibration_curve(y_true, y_prob, n_bins=10, strategy="uniform")
     fig, ax = plt.subplots(figsize=(5.5, 4.5))
@@ -265,7 +277,9 @@ def plot_reliability_curve(y_true: np.ndarray, y_prob: np.ndarray, out_path: Pat
     plt.close(fig)
 
 
-def plot_probability_hist(y_true: np.ndarray, y_prob: np.ndarray, out_path: Path, title: str) -> None:
+def plot_probability_hist(
+    y_true: np.ndarray, y_prob: np.ndarray, out_path: Path, title: str
+) -> None:
     fig, ax = plt.subplots(figsize=(7, 4.5))
     ax.hist(y_prob[y_true == 0], bins=25, alpha=0.7, label="normal")
     ax.hist(y_prob[y_true == 1], bins=25, alpha=0.7, label="abnormal")
@@ -289,9 +303,9 @@ def plot_feature_importance(importance_df: pd.DataFrame, out_path: Path, title: 
     plt.close(fig)
 
 
-
-
-def compute_global_feature_importance(model, X_val: pd.DataFrame, y_val: np.ndarray, seed: int) -> pd.DataFrame:
+def compute_global_feature_importance(
+    model, X_val: pd.DataFrame, y_val: np.ndarray, seed: int
+) -> pd.DataFrame:
     """
     Compute global feature importance using permutation importance on a sampled subset.
     Falls back to model.feature_importances_ when permutation_importance fails or is too heavy.
@@ -322,32 +336,54 @@ def compute_global_feature_importance(model, X_val: pd.DataFrame, y_val: np.ndar
             n_jobs=1,
         )
 
-        df = pd.DataFrame({
-            "feature": X_sample.columns,
-            "importance": result.importances_mean,
-            "std": result.importances_std,
-        }).sort_values("importance", ascending=False).reset_index(drop=True)
+        df = (
+            pd.DataFrame(
+                {
+                    "feature": X_sample.columns,
+                    "importance": result.importances_mean,
+                    "std": result.importances_std,
+                }
+            )
+            .sort_values("importance", ascending=False)
+            .reset_index(drop=True)
+        )
 
     except Exception as exc:
         # Fallback: use model.feature_importances_ if available (e.g., RandomForest)
-        warnings.warn(f"Permutation importance failed ({exc}); falling back to model.feature_importances_.")
+        warnings.warn(
+            f"Permutation importance failed ({exc}); falling back to model.feature_importances_."
+        )
         if hasattr(model, "feature_importances_"):
             import numpy as _np
+
             fi = _np.asarray(model.feature_importances_)
-            df = pd.DataFrame({
-                "feature": X_sample.columns,
-                "importance": fi,
-                "std": _np.zeros_like(fi),
-            }).sort_values("importance", ascending=False).reset_index(drop=True)
+            df = (
+                pd.DataFrame(
+                    {
+                        "feature": X_sample.columns,
+                        "importance": fi,
+                        "std": _np.zeros_like(fi),
+                    }
+                )
+                .sort_values("importance", ascending=False)
+                .reset_index(drop=True)
+            )
         else:
             # Last resort: return zeros so downstream code can continue
-            df = pd.DataFrame({
-                "feature": X_sample.columns,
-                "importance": [0.0] * len(X_sample.columns),
-                "std": [0.0] * len(X_sample.columns),
-            }).sort_values("importance", ascending=False).reset_index(drop=True)
+            df = (
+                pd.DataFrame(
+                    {
+                        "feature": X_sample.columns,
+                        "importance": [0.0] * len(X_sample.columns),
+                        "std": [0.0] * len(X_sample.columns),
+                    }
+                )
+                .sort_values("importance", ascending=False)
+                .reset_index(drop=True)
+            )
 
     return df
+
 
 def ensure_model_outputs(df: pd.DataFrame, model, calibrator, threshold: float) -> pd.DataFrame:
     """
@@ -364,7 +400,9 @@ def ensure_model_outputs(df: pd.DataFrame, model, calibrator, threshold: float) 
     # 1) calibrated wrapper may not expose feature_names_in_, try underlying estimator
     try:
         # If clf is CalibratedClassifierCV, its .estimator or calibrated_classifiers_ may exist.
-        base_candidate = getattr(clf, "estimator", None) or getattr(clf, "base_estimator", None) or clf
+        base_candidate = (
+            getattr(clf, "estimator", None) or getattr(clf, "base_estimator", None) or clf
+        )
     except Exception:
         base_candidate = clf
 
@@ -411,6 +449,7 @@ def ensure_model_outputs(df: pd.DataFrame, model, calibrator, threshold: float) 
 
     return df
 
+
 def local_surrogate_explanations(
     sample_df: pd.DataFrame,
     train_df: pd.DataFrame,
@@ -425,18 +464,28 @@ def local_surrogate_explanations(
     Returns a DataFrame of top features per sample and the CSV path.
     """
     # ensure model outputs exist
-    threshold = calibration_result.get("best_threshold", 0.5) if calibration_result is not None else 0.5
+    threshold = (
+        calibration_result.get("best_threshold", 0.5) if calibration_result is not None else 0.5
+    )
     sample_df = ensure_model_outputs(sample_df, base_model, calibrator, threshold)
     train_df = ensure_model_outputs(train_df, base_model, calibrator, threshold)
 
     # compute feature columns excluding ID and model-output columns (robust)
-    exclude_cols = set(ID_COLS) | {LABEL_COL, SPLIT_COL, "anomaly_probability", "confidence", "prediction"}
+    exclude_cols = set(ID_COLS) | {
+        LABEL_COL,
+        SPLIT_COL,
+        "anomaly_probability",
+        "confidence",
+        "prediction",
+    }
     # prefer sample_df columns, but fall back to train_df if needed
     feature_cols = [c for c in sample_df.columns if c not in exclude_cols]
     if not feature_cols:
         feature_cols = [c for c in train_df.columns if c not in exclude_cols]
     # keep only numeric columns (needed for median/std and zscore)
-    feature_cols = [c for c in feature_cols if pd.api.types.is_numeric_dtype(sample_df.get(c, train_df[c]))]
+    feature_cols = [
+        c for c in feature_cols if pd.api.types.is_numeric_dtype(sample_df.get(c, train_df[c]))
+    ]
     if not feature_cols:
         raise ValueError(
             "No numeric feature columns found for local surrogate explanations. "
@@ -472,7 +521,11 @@ def local_surrogate_explanations(
                 pass  # if fallback fails, keep original x
 
         # compute z-scores and clip to ±10 to avoid extreme domination
-        z = ((x - train_medians.reindex(feature_cols)) / train_stds.reindex(feature_cols)).replace([np.inf, -np.inf], np.nan).fillna(0.0)
+        z = (
+            ((x - train_medians.reindex(feature_cols)) / train_stds.reindex(feature_cols))
+            .replace([np.inf, -np.inf], np.nan)
+            .fillna(0.0)
+        )
         z = np.clip(z, -10, 10)
 
         scores = []
@@ -482,19 +535,21 @@ def local_surrogate_explanations(
             imp = float(importance_map.get(feat, 0.0))
             zval = float(z[feat])
             weighted = abs(zval) * imp
-            scores.append({
-                "sample_id": sid,
-                "label": label,
-                "prediction": pred,
-                "anomaly_probability": prob,
-                "feature": feat,
-                "value": float(x[feat]),
-                "train_median": float(train_medians.get(feat, 0.0)),
-                "train_std": float(train_stds.get(feat, 1.0)),
-                "zscore": zval,
-                "global_importance": imp,
-                "weighted_score": weighted,
-            })
+            scores.append(
+                {
+                    "sample_id": sid,
+                    "label": label,
+                    "prediction": pred,
+                    "anomaly_probability": prob,
+                    "feature": feat,
+                    "value": float(x[feat]),
+                    "train_median": float(train_medians.get(feat, 0.0)),
+                    "train_std": float(train_stds.get(feat, 1.0)),
+                    "zscore": zval,
+                    "global_importance": imp,
+                    "weighted_score": weighted,
+                }
+            )
 
         # build DataFrame only if we have scores
         df_scores = pd.DataFrame(scores)
@@ -508,13 +563,29 @@ def local_surrogate_explanations(
         rows.append(top)
 
     # after the loop, construct local_df defensively
-    local_df = pd.concat(rows, ignore_index=True) if rows else pd.DataFrame(columns=[
-        "sample_id", "label", "prediction", "anomaly_probability", "feature", "value",
-        "train_median", "train_std", "zscore", "global_importance", "weighted_score"
-    ])
+    local_df = (
+        pd.concat(rows, ignore_index=True)
+        if rows
+        else pd.DataFrame(
+            columns=[
+                "sample_id",
+                "label",
+                "prediction",
+                "anomaly_probability",
+                "feature",
+                "value",
+                "train_median",
+                "train_std",
+                "zscore",
+                "global_importance",
+                "weighted_score",
+            ]
+        )
+    )
     out_csv = out_dir / "local_explanations.csv"
     local_df.to_csv(out_csv, index=False)
     return local_df, out_csv
+
 
 def plot_local_explanation(local_df: pd.DataFrame, sample_id: str, out_path: Path) -> None:
     sub = local_df[local_df["sample_id"] == sample_id].sort_values("weighted_score", ascending=True)
@@ -551,14 +622,16 @@ def cmd_calibrate(paths: Paths, calibration_method: str, seed: int) -> Dict:
     y_test = test_df[LABEL_COL].astype(int).values
 
     if not hasattr(base_model, "predict_proba"):
-        raise AttributeError(f"Base model loaded from {base_model_path} does not support predict_proba().")
+        raise AttributeError(
+            f"Base model loaded from {base_model_path} does not support predict_proba()."
+        )
 
     # Calibrate using validation set only.
-  
+
     calibrator = CalibratedClassifierCV(
-    estimator=base_model,
-    method=calibration_method,
-    cv=3,   # use 3-fold CV
+        estimator=base_model,
+        method=calibration_method,
+        cv=3,  # use 3-fold CV
     )
     calibrator.fit(X_train, y_train)
 
@@ -609,12 +682,26 @@ def cmd_calibrate(paths: Paths, calibration_method: str, seed: int) -> Dict:
     save_json(paths.uncertainty_json, uncertainty)
 
     test_conf = np.maximum(test_prob, 1 - test_prob)
-    plot_confidence_hist(test_conf, paths.phase5_plots / "confidence_hist.png", "Internal test confidence histogram")
-    plot_reliability_curve(y_test, test_prob, paths.phase5_plots / "reliability_curve.png", "Internal test reliability curve")
-    plot_probability_hist(y_test, test_prob, paths.phase5_plots / "internal_test_probability_hist.png", "Internal test anomaly probabilities")
+    plot_confidence_hist(
+        test_conf, paths.phase5_plots / "confidence_hist.png", "Internal test confidence histogram"
+    )
+    plot_reliability_curve(
+        y_test,
+        test_prob,
+        paths.phase5_plots / "reliability_curve.png",
+        "Internal test reliability curve",
+    )
+    plot_probability_hist(
+        y_test,
+        test_prob,
+        paths.phase5_plots / "internal_test_probability_hist.png",
+        "Internal test anomaly probabilities",
+    )
 
     # reliability details
-    frac_pos, mean_pred = calibration_curve(np.clip(y_test, 0, 1), np.clip(test_prob, 1e-6, 1 - 1e-6), n_bins=10, strategy="uniform")
+    frac_pos, mean_pred = calibration_curve(
+        np.clip(y_test, 0, 1), np.clip(test_prob, 1e-6, 1 - 1e-6), n_bins=10, strategy="uniform"
+    )
     reliability_df = pd.DataFrame({"mean_predicted": mean_pred, "fraction_positive": frac_pos})
     reliability_df.to_csv(paths.reports_dir / "reliability_curve.csv", index=False)
 
@@ -634,6 +721,7 @@ def cmd_calibrate(paths: Paths, calibration_method: str, seed: int) -> Dict:
         "best_thr": best_thr,
     }
 
+
 def cmd_explain(paths: Paths, calibration_result: Dict, seed: int) -> Dict:
     calibrator = calibration_result["calibrator"]
     base_model = calibration_result["base_model"]
@@ -650,7 +738,11 @@ def cmd_explain(paths: Paths, calibration_result: Dict, seed: int) -> Dict:
     val_labels = val_df[LABEL_COL].astype(int).values
     global_imp = compute_global_feature_importance(calibrator, val_features, val_labels, seed=seed)
     global_imp.to_csv(paths.phase5_explanations / "global_feature_importance.csv", index=False)
-    plot_feature_importance(global_imp, paths.phase5_plots / "global_feature_importance.png", "Global feature importance")
+    plot_feature_importance(
+        global_imp,
+        paths.phase5_plots / "global_feature_importance.png",
+        "Global feature importance",
+    )
 
     # Prepare scored test frame (ensure columns exist)
     test_scored = test_df[["sample_id", "split", "label"]].copy()
@@ -671,25 +763,36 @@ def cmd_explain(paths: Paths, calibration_result: Dict, seed: int) -> Dict:
         out_dir=paths.phase5_explanations,
         base_model=base_model,
         calibrator=calibrator,
-        calibration_result={"best_threshold": best_thr} if not isinstance(calibration_result, dict) else calibration_result,
+        calibration_result=(
+            {"best_threshold": best_thr}
+            if not isinstance(calibration_result, dict)
+            else calibration_result
+        ),
     )
 
     # plot one representative local explanation
     if not local_df.empty:
-        top_sample_id = sample_df.sort_values("anomaly_probability", ascending=False).iloc[0]["sample_id"]
-        plot_local_explanation(local_df, top_sample_id, paths.phase5_plots / "local_explanation_top.png")
+        top_sample_id = sample_df.sort_values("anomaly_probability", ascending=False).iloc[0][
+            "sample_id"
+        ]
+        plot_local_explanation(
+            local_df, top_sample_id, paths.phase5_plots / "local_explanation_top.png"
+        )
 
     # Save an explainability summary
     summary = {
         "global_importance_csv": str(paths.phase5_explanations / "global_feature_importance.csv"),
         "local_explanations_csv": str(local_csv),
-        "top_samples": sample_df[["sample_id", "anomaly_probability", "prediction"]].to_dict(orient="records"),
+        "top_samples": sample_df[["sample_id", "anomaly_probability", "prediction"]].to_dict(
+            orient="records"
+        ),
     }
     save_json(paths.reports_dir / "explainability_summary.json", summary)
 
     print("[OK] Explainability complete.")
     print(json.dumps(summary, indent=2))
     return {"global_imp": global_imp, "local_df": local_df, "sample_df": sample_df}
+
 
 def cmd_official_infer(paths: Paths, calibration_result: Dict) -> None:
     calibrator = calibration_result["calibrator"]
@@ -705,7 +808,9 @@ def cmd_official_infer(paths: Paths, calibration_result: Dict) -> None:
     official_out["anomaly_probability"] = official_prob
     official_out["confidence"] = np.maximum(official_prob, 1 - official_prob)
     official_out["prediction"] = (official_prob >= calibration_result["best_thr"]).astype(int)
-    official_out["rank"] = official_out["anomaly_probability"].rank(ascending=False, method="first").astype(int)
+    official_out["rank"] = (
+        official_out["anomaly_probability"].rank(ascending=False, method="first").astype(int)
+    )
     official_out = official_out.sort_values("anomaly_probability", ascending=False)
     official_out.to_csv(paths.official_predictions_csv, index=False)
 
@@ -728,7 +833,11 @@ def cmd_run_all(paths: Paths, calibration_method: str, seed: int) -> None:
     summary = {
         "base_model_path": str(calibration_result["base_model_path"]),
         "best_threshold": calibration_result["best_thr"],
-        "internal_test_f1": calibration_result["calibration_result"]["internal_test"]["f1"] if "calibration_result" in calibration_result else None,
+        "internal_test_f1": (
+            calibration_result["calibration_result"]["internal_test"]["f1"]
+            if "calibration_result" in calibration_result
+            else None
+        ),
     }
     save_json(paths.model_selection_json, summary)
 
@@ -744,7 +853,9 @@ def cmd_run_all(paths: Paths, calibration_method: str, seed: int) -> None:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description="Explainability and uncertainty for Mendeley anomaly detector.")
+    parser = argparse.ArgumentParser(
+        description="Explainability and uncertainty for Mendeley anomaly detector."
+    )
     parser.add_argument("--processed-dir", type=Path, required=True)
     parser.add_argument("--phase4-model-dir", type=Path, required=True)
     parser.add_argument("--phase5-model-dir", type=Path, required=True)
@@ -778,10 +889,14 @@ def main() -> int:
     if args.command == "calibrate":
         cmd_calibrate(paths, calibration_method=args.calibration_method, seed=args.seed)
     elif args.command == "explain":
-        calibration_result = cmd_calibrate(paths, calibration_method=args.calibration_method, seed=args.seed)
+        calibration_result = cmd_calibrate(
+            paths, calibration_method=args.calibration_method, seed=args.seed
+        )
         cmd_explain(paths, calibration_result, seed=args.seed)
     elif args.command == "infer-official":
-        calibration_result = cmd_calibrate(paths, calibration_method=args.calibration_method, seed=args.seed)
+        calibration_result = cmd_calibrate(
+            paths, calibration_method=args.calibration_method, seed=args.seed
+        )
         cmd_official_infer(paths, calibration_result)
     elif args.command == "run-all":
         cmd_run_all(paths, calibration_method=args.calibration_method, seed=args.seed)
