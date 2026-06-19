@@ -1,0 +1,36 @@
+{
+  "global_importance_csv": "reports/phase5/explanations/global_feature_importance.csv",
+  "local_explanations_csv": "reports/phase5/explanations/local_explanations.csv",
+  "top_samples": [
+    {
+      "sample_id": 27733,
+      "anomaly_probability": 1.0,
+      "prediction": 1
+    },
+    {
+      "sample_id": 2081,
+      "anomaly_probability": 1.0,
+      "prediction": 1
+    },
+    {
+      "sample_id": 26687,
+      "anomaly_probability": 1.0,
+      "prediction": 1
+    },
+    {
+      "sample_id": 21595,
+      "anomaly_probability": 0.00015782828282828284,
+      "prediction": 0
+    },
+    {
+      "sample_id": 18054,
+      "anomaly_probability": 0.00015782828282828284,
+      "prediction": 0
+    },
+    {
+      "sample_id": 5502,
+      "anomaly_probability": 0.00015782828282828284,
+      "prediction": 0
+    }
+  ]
+}

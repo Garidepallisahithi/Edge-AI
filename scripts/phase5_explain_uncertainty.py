@@ -505,22 +505,10 @@ def local_surrogate_explanations(
         pred = int(sample.get("prediction", 0))
         label = sample.get(LABEL_COL, np.nan)
 
-        # ensure x and z align with feature_cols and fill missing values defensively
+        # ensure x and z align with feature_cols and fill missing values
         x = sample.reindex(feature_cols).astype(float).fillna(0.0)
 
-        # If many features are zero (unexpected), fallback to the original train_df row
-        zero_frac = (x == 0.0).sum() / max(1, len(x))
-        if zero_frac > 0.4:  # threshold: more than 40% zeros is suspicious
-            try:
-                if sid is not None and sid in train_df.index:
-                    x_raw = train_df.loc[sid].reindex(feature_cols).astype(float).fillna(0.0)
-                    # only replace if raw row has fewer zeros
-                    if (x_raw == 0.0).sum() < (x == 0.0).sum():
-                        x = x_raw
-            except Exception:
-                pass  # if fallback fails, keep original x
-
-        # compute z-scores and clip to ±10 to avoid extreme domination
+        # compute z-scores and clip to ±10 for numerical stability
         z = (
             ((x - train_medians.reindex(feature_cols)) / train_stds.reindex(feature_cols))
             .replace([np.inf, -np.inf], np.nan)
@@ -744,8 +732,8 @@ def cmd_explain(paths: Paths, calibration_result: Dict, seed: int) -> Dict:
         "Global feature importance",
     )
 
-    # Prepare scored test frame (ensure columns exist)
-    test_scored = test_df[["sample_id", "split", "label"]].copy()
+    # Prepare scored test frame (include feature columns for local explanations)
+    test_scored = test_df[["sample_id", "split", "label"] + feature_cols].copy()
     test_scored["anomaly_probability"] = test_prob
     test_scored["confidence"] = np.maximum(test_prob, 1 - test_prob)
     test_scored["prediction"] = (test_prob >= best_thr).astype(int)

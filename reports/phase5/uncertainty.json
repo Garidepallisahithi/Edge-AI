@@ -1,0 +1,11 @@
+{
+  "threshold": 0.5099999999999999,
+  "confidence_cutoff": 0.8,
+  "brier_score": 0.023141864228877974,
+  "log_loss": 0.08017209832673897,
+  "ece": 0.004826758450639558,
+  "avg_confidence": 0.9648477007404815,
+  "coverage_at_confidence_cutoff": 0.9351884466361395,
+  "selective_accuracy_at_confidence_cutoff": 0.9888888888888889,
+  "selective_f1_at_confidence_cutoff": 0.9601620526671168
+}
