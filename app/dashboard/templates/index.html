@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Phase 5 - Edge-AI Explainability Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <h1>Phase 5: Anomaly Detection - Explainability & Uncertainty</h1>
+            <p class="subtitle">Calibration, Feature Importance, and Local Explanations</p>
+        </header>
+
+        <!-- Navigation -->
+        <nav class="tabs">
+            <button class="tab-button active" data-tab="overview">Overview</button>
+            <button class="tab-button" data-tab="calibration">Calibration</button>
+            <button class="tab-button" data-tab="explanations">Explanations</button>
+            <button class="tab-button" data-tab="predictions">Predictions</button>
+            <button class="tab-button" data-tab="uncertainty">Uncertainty</button>
+        </nav>
+
+        <!-- Tab Content -->
+        <main class="content">
+            <!-- Overview Tab -->
+            <section id="overview" class="tab-content active">
+                <h2>Dashboard Overview</h2>
+                <div class="metrics-grid" id="overview-metrics">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <div class="chart-container">
+                    <canvas id="overview-chart"></canvas>
+                </div>
+            </section>
+
+            <!-- Calibration Tab -->
+            <section id="calibration" class="tab-content">
+                <h2>Calibration Metrics</h2>
+                <div class="metrics-grid" id="calibration-metrics">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Reliability Curve</h3>
+                        <canvas id="reliability-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Confidence Distribution</h3>
+                        <canvas id="confidence-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Explanations Tab -->
+            <section id="explanations" class="tab-content">
+                <h2>Feature Importance & Local Explanations</h2>
+                
+                <div class="explanation-section">
+                    <h3>Global Feature Importance</h3>
+                    <div class="chart-container">
+                        <canvas id="global-importance-chart"></canvas>
+                    </div>
+                    <table id="global-importance-table" class="table">
+                        <thead>
+                            <tr>
+                                <th>Feature</th>
+                                <th>Importance</th>
+                                <th>Std Dev</th>
+                            </tr>
+                        </thead>
+                        <tbody></tbody>
+                    </table>
+                </div>
+
+                <div class="explanation-section">
+                    <h3>Local Explanations (Sample Analysis)</h3>
+                    <div class="sample-selector">
+                        <label for="sample-id-select">Select Sample:</label>
+                        <select id="sample-id-select"></select>
+                    </div>
+                    <div id="sample-explanation" class="sample-explanation">
+                        <!-- Populated by JavaScript -->
+                    </div>
+                </div>
+            </section>
+
+            <!-- Predictions Tab -->
+            <section id="predictions" class="tab-content">
+                <h2>Prediction Analysis</h2>
+                <div class="metrics-grid" id="predictions-metrics">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <div class="chart-grid">
+                    <div class="chart-container">
+                        <h3>Internal Test Predictions</h3>
+                        <canvas id="internal-test-chart"></canvas>
+                    </div>
+                    <div class="chart-container">
+                        <h3>Validation Predictions</h3>
+                        <canvas id="validation-chart"></canvas>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Uncertainty Tab -->
+            <section id="uncertainty" class="tab-content">
+                <h2>Uncertainty Quantification</h2>
+                <div class="metrics-grid" id="uncertainty-metrics">
+                    <!-- Populated by JavaScript -->
+                </div>
+                <div class="uncertainty-details">
+                    <h3>Uncertainty Measures</h3>
+                    <ul id="uncertainty-list">
+                        <!-- Populated by JavaScript -->
+                    </ul>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Phase 5 Dashboard | Calibration & Explainability Analysis</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/dashboard.js') }}"></script>
+</body>
+</html>
