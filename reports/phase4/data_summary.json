@@ -1,0 +1,10 @@
+{
+  "train_rows": 28389,
+  "test_rows": 11234,
+  "train_label_distribution": {
+    "0.0": 23735,
+    "1.0": 4654
+  },
+  "feature_count": 99,
+  "feature_csv": "data/processed/mendeley_features_all.csv"
+}

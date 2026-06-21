@@ -1,0 +1,8 @@
+usage: phase5_explain_uncertainty.py [-h] --processed-dir PROCESSED_DIR
+                                     --phase4-model-dir PHASE4_MODEL_DIR
+                                     --phase5-model-dir PHASE5_MODEL_DIR
+                                     --reports-dir REPORTS_DIR [--seed SEED]
+                                     [--calibration-method {isotonic,sigmoid}]
+                                     {calibrate,explain,infer-official,run-all}
+                                     ...
+phase5_explain_uncertainty.py: error: unrecognized arguments: predict

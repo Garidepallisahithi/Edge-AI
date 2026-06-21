@@ -6,9 +6,11 @@ import pandas as pd
 from sklearn.ensemble import IsolationForest
 from sklearn.metrics import classification_report, confusion_matrix
 
+
 def load_pickle(pkl_path: Path):
     with pkl_path.open("rb") as f:
         return pickle.load(f)
+
 
 def collect_samples(base_dir: Path, max_files: int = 500):
     pkl_files = sorted(base_dir.rglob("*.pkl"))
@@ -21,6 +23,7 @@ def collect_samples(base_dir: Path, max_files: int = 500):
             print(f"[WARN] Failed to load {p}: {e}")
     return samples
 
+
 def extract_features(samples):
     rows = []
     for data, metadata in samples:
@@ -28,30 +31,32 @@ def extract_features(samples):
             continue
         # basic statistical features
         feat = {
-            "volt_mean": np.mean(data[:,0]),
-            "volt_std": np.std(data[:,0]),
-            "current_mean": np.mean(data[:,1]),
-            "current_std": np.std(data[:,1]),
-            "temp_max": np.max(data[:,5]),
-            "temp_min": np.min(data[:,6]),
-            "soc_mean": np.mean(data[:,2]),
-            "label": metadata.get("label", None) if isinstance(metadata, dict) else None
+            "volt_mean": np.mean(data[:, 0]),
+            "volt_std": np.std(data[:, 0]),
+            "current_mean": np.mean(data[:, 1]),
+            "current_std": np.std(data[:, 1]),
+            "temp_max": np.max(data[:, 5]),
+            "temp_min": np.min(data[:, 6]),
+            "soc_mean": np.mean(data[:, 2]),
+            "label": metadata.get("label", None) if isinstance(metadata, dict) else None,
         }
         rows.append(feat)
     return pd.DataFrame(rows)
 
+
 def main():
     parser = argparse.ArgumentParser(description="Phase 3 - Feature engineering + baseline model")
-    parser.add_argument("--data-dir", type=Path, required=True,
-                        help="Path to extracted Train/Test folders")
-    parser.add_argument("--out-csv", type=Path, required=True,
-                        help="Where to save features CSV")
-    parser.add_argument("--metrics-out", type=Path, required=True,
-                        help="Where to save metrics report")
+    parser.add_argument(
+        "--data-dir", type=Path, required=True, help="Path to extracted Train/Test folders"
+    )
+    parser.add_argument("--out-csv", type=Path, required=True, help="Where to save features CSV")
+    parser.add_argument(
+        "--metrics-out", type=Path, required=True, help="Where to save metrics report"
+    )
     args = parser.parse_args()
 
     train_dir = args.data_dir / "Train" / "Train"
-    test_dir  = args.data_dir / "Test"
+    test_dir = args.data_dir / "Test"
 
     print("[INFO] Loading Train samples...")
     train_samples = collect_samples(train_dir)
@@ -63,7 +68,7 @@ def main():
 
     # Extract features
     train_df = extract_features(train_samples)
-    test_df  = extract_features(test_samples)
+    test_df = extract_features(test_samples)
 
     # Save features
     args.out_csv.parent.mkdir(parents=True, exist_ok=True)
@@ -84,7 +89,7 @@ def main():
     preds = model.predict(X_test)
     # Map IsolationForest outputs (-1 anomaly, 1 normal) to dataset labels
     preds = np.where(preds == -1, "10", "00")
-    
+
     # --- FIX: remove rows with missing labels ---
     mask = y_test.notna() & (y_test != "None")
     y_test = y_test[mask]
@@ -107,6 +112,7 @@ def main():
         f.write(str(cm) + "\n")
 
     print(f"[SUCCESS] Metrics saved to {args.metrics_out}")
+
 
 if __name__ == "__main__":
     main()
