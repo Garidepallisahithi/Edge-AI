@@ -1,3 +1,4 @@
 data/raw/mendeley/extracted/
 
 .venv/
+artifacts/models/*.joblib

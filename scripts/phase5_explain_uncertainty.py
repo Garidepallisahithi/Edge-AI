@@ -420,9 +420,6 @@ def ensure_model_outputs(df: pd.DataFrame, model, calibrator, threshold: float) 
     if model_features is None and hasattr(clf, "feature_names_in_"):
         model_features = list(getattr(clf, "feature_names_in_"))
 
-    # 5) Final fallback: use non-ID columns from df
-    if not model_features:
-        model_features = [c for c in df.columns if c not in ID_COLS.union({LABEL_COL, SPLIT_COL})]
 
     # Keep only columns that exist in df (defensive)
     feature_cols = [c for c in model_features if c in df.columns]
