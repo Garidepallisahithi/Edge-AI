@@ -28,15 +28,33 @@ def extract_features(samples):
             continue
         # basic statistical features
         feat = {
-            "volt_mean": np.mean(data[:,0]),
-            "volt_std": np.std(data[:,0]),
-            "current_mean": np.mean(data[:,1]),
-            "current_std": np.std(data[:,1]),
-            "temp_max": np.max(data[:,5]),
-            "temp_min": np.min(data[:,6]),
-            "soc_mean": np.mean(data[:,2]),
-            "label": metadata.get("label", None) if isinstance(metadata, dict) else None
-        }
+    	    "volt_mean": np.mean(data[:,0]),
+    	    "volt_std": np.std(data[:,0]),
+    	    "volt_max": np.max(data[:,0]),
+    	    "volt_min": np.min(data[:,0]),
+    	    "volt_range": np.max(data[:,0]) - np.min(data[:,0]),
+
+    	    "current_mean": np.mean(data[:,1]),
+    	    "current_std": np.std(data[:,1]),
+    	    "current_max": np.max(data[:,1]),
+    	    "current_min": np.min(data[:,1]),
+    	    "current_range": np.max(data[:,1]) - np.min(data[:,1]),
+
+    	    "temp_max": np.max(data[:,5]),
+    	    "temp_min": np.min(data[:,6]),
+    	    "temp_mean": (np.mean(data[:,5]) + np.mean(data[:,6])) / 2,
+    	    "temp_std": np.std(data[:,5]),
+    	    "temp_range": np.max(data[:,5]) - np.min(data[:,6]),
+
+    	    "soc_mean": np.mean(data[:,2]),
+    	    "soc_std": np.std(data[:,2]),
+
+    	    "mileage": float(metadata.get("mileage",0))
+                if isinstance(metadata,dict) else 0,
+
+    	    "label": metadata.get("label",None)
+                if isinstance(metadata,dict) else None
+	}
         rows.append(feat)
     return pd.DataFrame(rows)
 

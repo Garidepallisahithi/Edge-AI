@@ -1,0 +1,83 @@
+{
+  "IsolationForest": {
+    "0": {
+      "precision": 0.8706697459584296,
+      "recall": 0.8706697459584296,
+      "f1-score": 0.8706697459584296,
+      "support": 433.0
+    },
+    "10": {
+      "precision": 0.16417910447761194,
+      "recall": 0.16417910447761194,
+      "f1-score": 0.16417910447761194,
+      "support": 67.0
+    },
+    "accuracy": 0.776,
+    "macro avg": {
+      "precision": 0.5174244252180208,
+      "recall": 0.5174244252180208,
+      "f1-score": 0.5174244252180208,
+      "support": 500.0
+    },
+    "weighted avg": {
+      "precision": 0.776,
+      "recall": 0.776,
+      "f1-score": 0.776,
+      "support": 500.0
+    }
+  },
+  "OneClassSVM": {
+    "0": {
+      "precision": 0.8683602771362586,
+      "recall": 0.8683602771362586,
+      "f1-score": 0.8683602771362586,
+      "support": 433.0
+    },
+    "10": {
+      "precision": 0.14925373134328357,
+      "recall": 0.14925373134328357,
+      "f1-score": 0.14925373134328357,
+      "support": 67.0
+    },
+    "accuracy": 0.772,
+    "macro avg": {
+      "precision": 0.5088070042397711,
+      "recall": 0.5088070042397711,
+      "f1-score": 0.5088070042397711,
+      "support": 500.0
+    },
+    "weighted avg": {
+      "precision": 0.772,
+      "recall": 0.772,
+      "f1-score": 0.772,
+      "support": 500.0
+    }
+  },
+  "Autoencoder": {
+    "0": {
+      "precision": 0.8635394456289979,
+      "recall": 0.9353348729792148,
+      "f1-score": 0.8980044345898004,
+      "support": 433.0
+    },
+    "10": {
+      "precision": 0.0967741935483871,
+      "recall": 0.04477611940298507,
+      "f1-score": 0.061224489795918366,
+      "support": 67.0
+    },
+    "accuracy": 0.816,
+    "macro avg": {
+      "precision": 0.4801568195886925,
+      "recall": 0.49005549619109995,
+      "f1-score": 0.47961446219285936,
+      "support": 500.0
+    },
+    "weighted avg": {
+      "precision": 0.760792901850196,
+      "recall": 0.816,
+      "f1-score": 0.7858759219874202,
+      "support": 500.0
+    }
+  }
+}

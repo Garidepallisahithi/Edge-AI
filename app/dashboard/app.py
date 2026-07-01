@@ -312,7 +312,7 @@ local_exp = load_csv(LOCAL_EXPLANATIONS_CSV)
 best_threshold = float(metrics.get("best_threshold", 0.51) or 0.51)
 confidence_cutoff = float(uncertainty.get("confidence_cutoff", 0.80) or 0.80)
 readiness = safety_score(metrics, uncertainty)
-status_text = "READY FOR DEMO" if readiness >= 85 else "NEEDS REVIEW"
+status_text = "INFERENCE-ONLY DASHBOARD" if readiness >= 85 else "NEEDS REVIEW"
 
 # ---------------------------
 # Sidebar
@@ -337,21 +337,9 @@ sample_id = None
 if sample_choices:
     sample_id = st.sidebar.selectbox("Sample for local explanation", options=sample_choices, index=0)
 
-with st.sidebar.expander("Artifact check", expanded=False):
-    checks = [
-        ("metrics.json", METRICS_JSON),
-        ("uncertainty.json", UNCERTAINTY_JSON),
-        ("explainability_summary.json", EXPLAIN_SUMMARY_JSON),
-        ("official_test_predictions.csv", OFFICIAL_PRED_CSV),
-        ("global_feature_importance.csv", GLOBAL_IMPORTANCE_CSV),
-        ("local_explanations.csv", LOCAL_EXPLANATIONS_CSV),
-    ]
-    for label, path in checks:
-        status = "<span class='check-ok'>OK</span>" if path.exists() else "<span class='check-miss'>Missing</span>"
-        st.markdown(f"- {label}: {status}", unsafe_allow_html=True)
 
 st.sidebar.markdown("---")
-st.sidebar.markdown(f"**Phase-5 readiness score:** `{readiness:.1f}/100`")
+st.sidebar.markdown(f"**Evaluation Readiness Index:** `{readiness:.1f}/100`")
 st.sidebar.markdown("Built from saved artifacts only.")
 
 # ---------------------------
@@ -362,7 +350,7 @@ st.markdown(
 <div class="hero">
     <h1>Edge AI EV Battery Thermal Anomaly Early Warning System</h1>
     <p>Supervised labeled anomaly detection + uncertainty-aware diagnosis + explainability.</p>
-    <div class="status-pill">{status_text}</div>
+    
 </div>
 """,
     unsafe_allow_html=True,
@@ -440,32 +428,8 @@ with tabs[0]:
         ]
         for name, ok in checklist:
             status = "<span class='check-ok'>OK</span>" if ok else "<span class='check-miss'>Missing</span>"
-        st.markdown(f"- {name}: {status}", unsafe_allow_html=True)
+            st.markdown(f"- {name}: {status}", unsafe_allow_html=True)
 
-        st.code(
-            "\n".join(
-                [
-                    str(METRICS_JSON),
-                    str(UNCERTAINTY_JSON),
-                    str(EXPLAIN_SUMMARY_JSON),
-                    str(OFFICIAL_PRED_CSV),
-                    str(GLOBAL_IMPORTANCE_CSV),
-                    str(LOCAL_EXPLANATIONS_CSV),
-                ]
-            ),
-            language="text",
-        )
-
-        st.markdown(
-            f"""
-<div class="section-card">
-    <div class="metric-title">Demo Status</div>
-    <div class="metric-value">{"READY FOR DEMO" if readiness >= 85 else "NEEDS REVIEW"}</div>
-    <div class="metric-subtitle">No retraining. Visualization layer only.</div>
-</div>
-""",
-            unsafe_allow_html=True,
-        )
 
 # ---------------------------
 # Performance
@@ -579,11 +543,6 @@ with tabs[3]:
         else:
             st.info("No sample selected or local explanations are missing.")
 
-    st.markdown("### Explanation Summary")
-    if explain_summary:
-        st.json(explain_summary)
-    else:
-        st.info("Explainability summary not found.")
 
     if not local_exp.empty:
         st.markdown("### Top anomalous local explanations")
@@ -652,4 +611,4 @@ with tabs[4]:
         st.plotly_chart(fig, use_container_width=True)
 
 st.markdown("---")
-st.caption("Built from saved phase-5 artifacts only. No retraining. This dashboard is ready for screenshots and demo recording.")
+st.caption("Dashboard displays validated inference, uncertainty, and explainability artifacts generated during model evaluation.")

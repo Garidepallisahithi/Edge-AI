@@ -28,6 +28,20 @@ data/raw/
 *.tmp
 *.bak
 *.save
+*.backup*
+
+# Dashboard backups
+app.py.before*
+app.py.safe*
+app.py.fix*
+app.py.loop*
+app.py.pre*
+app.py.backup*
+app.py.broken*
 
 # Logs
 *.log
+data/processed/*.csv
+
+# artifacts
+artifacts/
